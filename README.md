@@ -22,7 +22,9 @@ or using `Python`
 python3 -m http.server 8080
 ```
 
-Either way, index.html will be launched as the frontend.
+Either way, index.html will be launched as the frontend. For example:
+
+![UI](./ui-with-chat.png)
 
 * Login - Pick one of the users
 
