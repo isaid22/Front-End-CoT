@@ -3,11 +3,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from bandit import ThompsonBandit
-from bedrock_access import generate_meassages, get_embeddings_batch
+from bedrock_access import generate_meassages, get_embeddings_batch, get_chat_response
 from ranker import rank_by_cosine
 import asyncio
 import threading
 import time
+import yaml
+
+# Load config
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+BEDROCK_CONFIG = config.get("bedrock", {})
+CHAT_MODEL_ID = BEDROCK_CONFIG.get("model_id", "amazon.nova-micro-v1:0")
+CHAT_SYSTEM_PROMPT = BEDROCK_CONFIG.get("chat_system_prompt", "You are a helpful assistant.")
+CHAT_USER_PROMPT_TEMPLATE = BEDROCK_CONFIG.get("user_prompt", "{payload_message}")
 
 
 app = FastAPI(title="Thompson-Bandit",default_response_class=ORJSONResponse,  version="0.1.0")
@@ -346,6 +356,10 @@ class RewardIn(BaseModel):
     arm_id: str
     reward: int   # 0 or 1
 
+class ChatIn(BaseModel):
+    message: str
+    user: dict
+
 @app.get("/choose", response_model=ChoiceOut)
 def choose():
     """Pick an arm."""
@@ -456,3 +470,20 @@ def get_processed_recommendation(user_id: str):
 def get_recommendation(user_id: str):
     """Legacy endpoint - now redirects to processed recommendations."""
     return get_processed_recommendation(user_id)
+
+@app.post("/api/chat")
+def chat(payload: ChatIn):
+    """Handle chatbot messages."""
+    try:
+        # Format the user prompt from the template
+        user_message = CHAT_USER_PROMPT_TEMPLATE.format(payload_message=payload.message)
+
+        reply = get_chat_response(
+            model_id=CHAT_MODEL_ID,
+            system_prompt=CHAT_SYSTEM_PROMPT,
+            user_message=user_message
+        )
+        return {"reply": reply}
+    except Exception as e:
+        print(f"Error calling Bedrock: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get response from chatbot.")

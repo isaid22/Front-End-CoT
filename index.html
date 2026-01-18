@@ -104,6 +104,77 @@
     label{font-size:12px;color:var(--muted)}
     input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border)}
     .error{color:#b91c1c;font-size:12px}
+
+    /* CHATBOT */
+    .chat-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 350px;
+      max-width: 90vw;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: none; /* Hidden by default */
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 100;
+    }
+    .chat-widget.visible {
+      display: flex;
+    }
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #f9fafb;
+      border-bottom: 1px solid var(--border);
+    }
+    .chat-header h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      min-height: 200px;
+      max-height: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-message {
+      padding: 8px 12px;
+      border-radius: 10px;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+    .chat-message.user {
+      background: var(--blue-2);
+      color: #fff;
+      align-self: flex-end;
+    }
+    .chat-message.bot {
+      background: #f3f4f6;
+      color: var(--ink);
+      align-self: flex-start;
+    }
+    .chat-input {
+      display: flex;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .chat-input input {
+      flex: 1;
+      border-radius: 999px;
+    }
+    .chat-input button {
+      margin-left: 10px;
+      border-radius: 999px;
+    }
   </style>
 </head>
 <body>
@@ -217,6 +288,21 @@
     </div>
   </div>
 
+  <!-- CHATBOT WIDGET -->
+  <div class="chat-widget" id="chatWidget">
+    <div class="chat-header">
+      <h4>Chat with us</h4>
+      <button class="cta ghost" id="closeChatBtn" style="padding: 4px 8px; font-size: 12px;">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <!-- Messages will be appended here -->
+    </div>
+    <div class="chat-input">
+      <input id="chatInput" type="text" placeholder="Type a message..." />
+      <button id="sendChatBtn" class="cta primary">Send</button>
+    </div>
+  </div>
+
   <!-- LOGIN MODAL -->
   <div class="modal-backdrop" id="loginModal">
     <div class="modal">
@@ -292,8 +378,20 @@
       $('checkingAmt').textContent = amounts.checking.toLocaleString(undefined,{style:'currency',currency:'USD'});
       $('depositAmt').textContent = `+$${amounts.deposit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
       $('withdrawAmt').textContent = `-$${amounts.withdraw.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-      $('ccAmt').textContent = amounts.cc.toLocaleString(undefined,{style:'currency',currency:'USD'});
+      $('ccAmt').textContent = amounts.cc.toLocaleString(undefined,{style:'currency','currency':'USD'});
       $('points').textContent = amounts.points.toLocaleString();
+
+      // Chatbot
+      const chatWidget = $('chatWidget');
+      if (u) {
+        // Don't re-initialize if it's already visible, just make sure it is
+        if (!chatWidget.classList.contains('visible')) {
+          initializeChat(u);
+        }
+        chatWidget.classList.add('visible');
+      } else {
+        chatWidget.classList.remove('visible');
+      }
 
       // Recommendation box (fetch and roll for Alice, reward on click)
       const recBox = $('recommendationBox');
@@ -468,6 +566,80 @@
           offersCarousel.appendChild(offerDiv);
         });
       }
+    }
+
+    function initializeChat(user) {
+      const chatWidget = $('chatWidget');
+      const chatMessages = $('chatMessages');
+      const chatInput = $('chatInput');
+      const sendChatBtn = $('sendChatBtn');
+      const closeChatBtn = $('closeChatBtn');
+
+      // Clear previous state
+      chatMessages.innerHTML = '';
+      chatInput.value = '';
+
+      // Greet the user
+      const botMessage = document.createElement('div');
+      botMessage.className = 'chat-message bot';
+      
+      let greeting = `Hello, ${user.name.split(' ')[0]}! How can I help you today?`;
+      if (user.username === 'alice') {
+        greeting = `Welcome back, Alice! It's great to see you. What can I assist you with?`;
+      }
+      botMessage.textContent = greeting;
+      chatMessages.appendChild(botMessage);
+
+      const handleSendMessage = () => {
+        const messageText = chatInput.value.trim();
+        if (!messageText) return;
+
+        // Display user message
+        const userMessage = document.createElement('div');
+        userMessage.className = 'chat-message user';
+        userMessage.textContent = messageText;
+        chatMessages.appendChild(userMessage);
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Send to backend and get response
+        fetch('http://localhost:8000/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ message: messageText, user: user })
+        })
+        .then(r => r.json())
+        .then(data => {
+          const botResponse = document.createElement('div');
+          botResponse.className = 'chat-message bot';
+          botResponse.textContent = data.reply;
+          chatMessages.appendChild(botResponse);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .catch(err => {
+          console.error("Chat API error:", err);
+          const errorResponse = document.createElement('div');
+          errorResponse.className = 'chat-message bot';
+          errorResponse.textContent = "Sorry, I'm having trouble connecting. Please try again later.";
+          chatMessages.appendChild(errorResponse);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+      };
+
+      // Use a clean clone of the button to avoid multiple listeners
+      const newSendBtn = sendChatBtn.cloneNode(true);
+      sendChatBtn.parentNode.replaceChild(newSendBtn, sendChatBtn);
+      newSendBtn.addEventListener('click', handleSendMessage);
+
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleSendMessage();
+        }
+      });
+      
+      closeChatBtn.addEventListener('click', () => {
+        chatWidget.classList.remove('visible');
+      });
     }
 
     // wire up

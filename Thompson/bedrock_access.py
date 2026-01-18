@@ -164,3 +164,46 @@ def get_embeddings_batch(
 			results[idx] = vec
 
 	return results
+
+def get_chat_response(model_id, system_prompt, user_message):
+    """
+    Generates a response from Bedrock for the chatbot.
+    """
+    print(f'##### Chat function called at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")}')
+
+    bedrock_runtime_client = boto3.client(
+        service_name="bedrock-runtime",
+        region_name="us-east-1"
+    )
+
+    inference_configuration = {
+        "maxTokens": 512,
+        "temperature": 0.7,
+        "topP": 0.9,
+    }
+
+    # Log the prompts being sent to Bedrock
+    print("\n" + "="*50)
+    print("BEDROCK API CALL")
+    print(f"MODEL ID: {model_id}")
+    print("-" * 20 + " SYSTEM PROMPT " + "-"*20)
+    print(system_prompt)
+    print("-" * 20 + " USER PROMPT " + "-"*22)
+    print(user_message)
+    print("="*50 + "\n")
+
+    response = bedrock_runtime_client.converse(
+        modelId=model_id,
+        system=[{"text": system_prompt}],
+        messages=[{"role": "user", "content": [{"text": user_message}]}],
+        inferenceConfig=inference_configuration
+    )
+
+    # Log the full response from Bedrock
+    print("\n" + "="*50)
+    print("BEDROCK API RESPONSE")
+    print(json.dumps(response, indent=2))
+    print("="*50 + "\n")
+
+    reply = response['output']['message']['content'][0]['text']
+    return reply
