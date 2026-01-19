@@ -4,6 +4,7 @@ from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 from bandit import ThompsonBandit
 from bedrock_access import generate_meassages, get_embeddings_batch, get_chat_response
+from calculations import calculate_affordability
 from ranker import rank_by_cosine
 import asyncio
 import threading
@@ -359,6 +360,75 @@ class RewardIn(BaseModel):
 class ChatIn(BaseModel):
     message: str
     user: dict
+
+class AffordabilityIn(BaseModel):
+    annual_income: float
+    monthly_debt: float
+    home_price: float
+    rate: float = 6.5
+    years: int = 30
+    dti_limit: float = 0.43
+
+@app.post("/api/affordability")
+def check_affordability(payload: AffordabilityIn):
+    """
+    Endpoint to calculate affordability and explain via CoT.
+    """
+    try:
+        # 1. Calculate metrics using the python function
+        is_affordable, monthly_payment, max_monthly_budget = calculate_affordability(
+            annual_income=payload.annual_income,
+            monthly_debt=payload.monthly_debt,
+            home_price=payload.home_price,
+            rate=payload.rate,
+            year=payload.years,
+            dti_limit=payload.dti_limit,
+        )
+
+        # 2. Construct the prompt
+        system_prompt = """You are a mortgage affordability assistant. 
+
+Instructions:
+Walk through the math step-by-step to explain *why* the system determined the affordability status.
+IMPORTANT: Use plain text only for calculations. Do NOT use LaTeX formatting (e.g., no \[ or \frac).
+1. Calculate monthly gross income.
+2. Verify the max total debt allowed.
+3. Explain the remaining budget for a mortgage.
+4. Compare the estimated payment to the budget."""
+
+        user_message = f"""User inputs:
+- Annual income: ${payload.annual_income}
+- Monthly debt: ${payload.monthly_debt}
+- Home price: ${payload.home_price}
+- Interest rate: {payload.rate}%
+- Term: {payload.years} years
+- DTI limit: {payload.dti_limit}
+
+The system has pre-calculated the following:
+- Estimated Monthly Payment: ${monthly_payment:.2f}
+- Max Monthly Budget: ${max_monthly_budget:.2f}
+- Affordability: {is_affordable}
+
+Answer: Let's think step by step."""
+
+        # 3. Call Bedrock with low temperature for specific reasoning
+        response = get_chat_response(
+            model_id="amazon.nova-micro-v1:0",
+            system_prompt=system_prompt,
+            user_message=user_message,
+            temperature=0.1
+        )
+        
+        return {
+            "is_affordable": is_affordable,
+            "monthly_payment": monthly_payment,
+            "max_monthly_budget": max_monthly_budget,
+            "explanation": response
+        }
+
+    except Exception as e:
+        print(f"Error in affordability check: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/choose", response_model=ChoiceOut)
 def choose():

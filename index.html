@@ -16,6 +16,135 @@
       --shadow:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.08);
       --radius:14px;
     }
+
+    /* CHAT WIDGET STYLES */
+    .chat-widget {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 380px;
+        height: 500px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        flex-direction: column;
+        border: 1px solid var(--border);
+        /* Resize Capability */
+        resize: both;
+        overflow: hidden; 
+        min-width: 320px;
+        min-height: 480px;
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+    .chat-widget.visible {
+        display: flex;
+    }
+    .chat-header {
+        background-color: #0b5cab;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px 0 0 0; /* Corner adjusted for resize handle */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move; /* Draggable cursor */
+        user-select: none;
+    }
+    
+    /* FLOATING ACTION BUTTON (minimized chat) */
+    .chat-fab {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: #0b5cab;
+        border-radius: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 999;
+        display: none; /* controlled by JS */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: none;
+        color: white;
+        font-size: 24px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .chat-fab:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+    .chat-header h4 { margin: 0; color: white; }
+    .chat-messages {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .chat-message {
+        padding: 8px 12px;
+        border-radius: 8px;
+        max-width: 80%;
+        line-height: 1.4;
+        font-size: 14px;
+    }
+    .chat-message.bot {
+        background: #f3f4f6;
+        color: var(--ink);
+        align-self: flex-start;
+    }
+    .chat-message.user {
+        background: var(--blue-2);
+        color: white;
+        align-self: flex-end;
+    }
+    .chat-input {
+        padding: 12px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 8px;
+    }
+    .chat-input input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+    }
+    .chat-input button {
+        white-space: nowrap;
+    }
+
+    /* Affordability Form in Chat */
+    .afford-form {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+    }
+    .afford-form input {
+        padding: 6px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        width: 100%;
+    }
+    .afford-form label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 2px;
+        display: block;
+    }
+
       /* RECOMMENDATION BOX CAROUSEL */
       .recommendation-carousel {
         min-height: 48px;
@@ -105,76 +234,7 @@
     input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border)}
     .error{color:#b91c1c;font-size:12px}
 
-    /* CHATBOT */
-    .chat-widget {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 350px;
-      max-width: 90vw;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      display: none; /* Hidden by default */
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 100;
-    }
-    .chat-widget.visible {
-      display: flex;
-    }
-    .chat-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px;
-      background: #f9fafb;
-      border-bottom: 1px solid var(--border);
-    }
-    .chat-header h4 {
-      margin: 0;
-      font-size: 16px;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      min-height: 200px;
-      max-height: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .chat-message {
-      padding: 8px 12px;
-      border-radius: 10px;
-      max-width: 80%;
-      line-height: 1.4;
-    }
-    .chat-message.user {
-      background: var(--blue-2);
-      color: #fff;
-      align-self: flex-end;
-    }
-    .chat-message.bot {
-      background: #f3f4f6;
-      color: var(--ink);
-      align-self: flex-start;
-    }
-    .chat-input {
-      display: flex;
-      padding: 16px;
-      border-top: 1px solid var(--border);
-    }
-    .chat-input input {
-      flex: 1;
-      border-radius: 999px;
-    }
-    .chat-input button {
-      margin-left: 10px;
-      border-radius: 999px;
-    }
+
   </style>
 </head>
 <body>
@@ -291,7 +351,11 @@
   <!-- CHATBOT WIDGET -->
   <div class="chat-widget" id="chatWidget">
     <div class="chat-header">
-      <h4>Chat with us</h4>
+      <div style="display:flex;align-items:center;gap:8px">
+        <h4>Assistant</h4>
+        <!-- Tool Button -->
+        <button id="affordToolBtn" title="Mortgage Calculator" style="background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 6px;font-size:12px">🧮 Calc</button>
+      </div>
       <button class="cta ghost" id="closeChatBtn" style="padding: 4px 8px; font-size: 12px;">✕</button>
     </div>
     <div class="chat-messages" id="chatMessages">
@@ -331,6 +395,9 @@
       </div>
     </div>
   </div>
+
+  <!-- CHAT FAB (Re-open button) -->
+  <button id="chatFab" class="chat-fab" title="Open Assistant">💬</button>
 
   <script>
     // USERS (local-only demo)
@@ -383,14 +450,28 @@
 
       // Chatbot
       const chatWidget = $('chatWidget');
+      const chatFab = $('chatFab');
+      
       if (u) {
-        // Don't re-initialize if it's already visible, just make sure it is
-        if (!chatWidget.classList.contains('visible')) {
-          initializeChat(u);
+        // Chat Logic (Show Widget or Fab if already dismissed? Revisit logic)
+        // If not initialized, initialize. If closed previously using toggle, keep closed.
+        // For simplicity: Default to OPEN on login/render. 
+        if (!chatWidget.classList.contains('visible') && chatFab.style.display === 'none') {
+           // First render or logic
+           chatWidget.classList.add('visible');
+           chatFab.style.display = 'none';
+           initializeChat(u);
+        } else {
+            // keep current state
+             if (!chatWidget.classList.contains('visible') && chatFab.style.display !== 'flex') {
+                 // should show one of them
+                 chatWidget.classList.add('visible');
+                 initializeChat(u);
+             }
         }
-        chatWidget.classList.add('visible');
       } else {
         chatWidget.classList.remove('visible');
+        chatFab.style.display = 'none';
       }
 
       // Recommendation box (fetch and roll for Alice, reward on click)
@@ -570,11 +651,71 @@
 
     function initializeChat(user) {
       const chatWidget = $('chatWidget');
+      const chatFab = $('chatFab');
       const chatMessages = $('chatMessages');
       const chatInput = $('chatInput');
       const sendChatBtn = $('sendChatBtn');
       const closeChatBtn = $('closeChatBtn');
+      const affordToolBtn = $('affordToolBtn'); // Get the button
+      const chatHeader = chatWidget.querySelector('.chat-header');
 
+      // --- TOGGLE LOGIC ---
+      closeChatBtn.onclick = () => {
+          chatWidget.classList.remove('visible');
+          chatFab.style.display = 'flex';
+      };
+      
+      chatFab.onclick = () => {
+          chatFab.style.display = 'none';
+          chatWidget.classList.add('visible');
+          // Important: reset position if it's off screen? 
+          // For now, keep dragged position.
+      };
+
+      // --- DRAG LOGIC ---
+      let isDragging = false;
+      let dragOffsetX = 0;
+      let dragOffsetY = 0;
+
+      chatHeader.addEventListener('mousedown', (e) => {
+          // Avoid dragging if clicking buttons inside header
+          if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+          
+          isDragging = true;
+          
+          // Calculate offset from mouse to top-left of widget
+          const rect = chatWidget.getBoundingClientRect();
+          dragOffsetX = e.clientX - rect.left;
+          dragOffsetY = e.clientY - rect.top;
+          
+          // Switch to absolute positioning (top/left) instead of bottom/right
+          // This "locks" the widget to the current position to start dragging
+          chatWidget.style.bottom = 'auto';
+          chatWidget.style.right = 'auto';
+          chatWidget.style.left = rect.left + 'px';
+          chatWidget.style.top = rect.top + 'px';
+          
+          // Disable text selection during drag
+          document.body.style.userSelect = 'none';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          
+          const newLeft = e.clientX - dragOffsetX;
+          const newTop = e.clientY - dragOffsetY;
+          
+          chatWidget.style.left = newLeft + 'px';
+          chatWidget.style.top = newTop + 'px';
+      });
+
+      document.addEventListener('mouseup', () => {
+          if (isDragging) {
+              isDragging = false;
+              document.body.style.userSelect = '';
+          }
+      });
+      
       // Clear previous state
       chatMessages.innerHTML = '';
       chatInput.value = '';
@@ -589,6 +730,111 @@
       }
       botMessage.textContent = greeting;
       chatMessages.appendChild(botMessage);
+
+      // --- CALCULATOR TOOL LOGIC ---
+      affordToolBtn.onclick = () => {
+          const formMsg = document.createElement('div');
+          formMsg.className = 'chat-message bot';
+          formMsg.style.width = '100%';
+          formMsg.style.maxWidth = '100%';
+
+          // Generate unique ID for this instance
+          const uid = Date.now();
+          
+          formMsg.innerHTML = `
+            <strong>Mortgage Affordability Calculator</strong>
+            <div class="afford-form">
+                <div>
+                    <label>Annual Income ($)</label>
+                    <input type="number" id="f_income_${uid}" value="120000">
+                </div>
+                <div>
+                    <label>Monthly Debt ($)</label>
+                    <input type="number" id="f_debt_${uid}" value="600">
+                </div>
+                <div>
+                    <label>Home Price ($)</label>
+                    <input type="number" id="f_price_${uid}" value="420000">
+                </div>
+                <div style="display:flex;gap:4px">
+                    <div style="flex:1">
+                        <label>Rate (%)</label>
+                        <input type="number" id="f_rate_${uid}" value="6.5">
+                    </div>
+                    <div style="flex:1">
+                         <label>Years</label>
+                         <input type="number" id="f_years_${uid}" value="30">
+                    </div>
+                </div>
+                <button class="cta primary" id="f_calc_btn_${uid}" style="margin-top:4px">Check Affordability</button>
+            </div>
+          `;
+          chatMessages.appendChild(formMsg);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+
+          // Wire up the form button inside the bubble
+          setTimeout(() => {
+              const btn = document.getElementById(`f_calc_btn_${uid}`);
+              if(btn) {
+                  btn.onclick = () => {
+                      const income = parseFloat(document.getElementById(`f_income_${uid}`).value);
+                      const debt = parseFloat(document.getElementById(`f_debt_${uid}`).value);
+                      const price = parseFloat(document.getElementById(`f_price_${uid}`).value);
+                      const rate = parseFloat(document.getElementById(`f_rate_${uid}`).value);
+                      const years = parseInt(document.getElementById(`f_years_${uid}`).value);
+
+                      btn.textContent = 'Calculating...';
+                      btn.disabled = true;
+
+                      fetch('http://localhost:8000/api/affordability', {
+                          method: 'POST',
+                          headers: {'Content-Type': 'application/json'},
+                          body: JSON.stringify({
+                              annual_income: income,
+                              monthly_debt: debt,
+                              home_price: price,
+                              rate: rate,
+                              years: years,
+                              dti_limit: 0.43
+                          })
+                      })
+                      .then(r => r.json())
+                      .then(data => {
+                          // Display result
+                          const resultMsg = document.createElement('div');
+                          resultMsg.className = 'chat-message bot';
+                          // Convert newlines to <br> for display
+                          const formattedExplanation = data.explanation.replace(/\n/g, '<br>');
+                          
+                          const statusIcon = data.is_affordable === 'affordable' ? '✅' : '❌';
+                          
+                          resultMsg.innerHTML = `
+                            <strong>Result: ${statusIcon} ${data.is_affordable.toUpperCase()}</strong><br><br>
+                            <em>Monthly Payment:</em> $${data.monthly_payment.toFixed(2)}<br>
+                            <em>Max Budget:</em> $${data.max_monthly_budget.toFixed(2)}<br><br>
+                            <strong>Analysis:</strong><br>
+                            ${formattedExplanation}
+                          `;
+                          chatMessages.appendChild(resultMsg);
+                          chatMessages.scrollTop = chatMessages.scrollHeight;
+                          
+                          // Reset form button state? optional
+                          btn.textContent = 'Check Again';
+                          btn.disabled = false;
+                      })
+                      .catch(err => {
+                          console.error(err);
+                          const errMsg = document.createElement('div');
+                          errMsg.className = 'chat-message bot';
+                          errMsg.textContent = 'Error calculating affordability.';
+                          chatMessages.appendChild(errMsg);
+                          btn.textContent = 'Retry';
+                          btn.disabled = false;
+                      });
+                  };
+              }
+          }, 100);
+      };
 
       const handleSendMessage = () => {
         const messageText = chatInput.value.trim();
@@ -637,9 +883,20 @@
         }
       });
       
-      closeChatBtn.addEventListener('click', () => {
-        chatWidget.classList.remove('visible');
-      });
+      closeChatBtn.removeEventListener('click', closeChatBtn._closeHandler); // Basic cleanup attempt if re-initialized
+      closeChatBtn._closeHandler = () => {
+         // Logic moved to top of initializeChat for consistency
+      };
+      // ... actually, initializeChat is guarded by !classList.contains('active') in render() mostly. 
+      // But creating clognes of buttons is safer to remove old listeners.
+      
+      const newCloseBtn = closeChatBtn.cloneNode(true);
+      closeChatBtn.parentNode.replaceChild(newCloseBtn, closeChatBtn);
+      newCloseBtn.onclick = () => {
+          chatWidget.classList.remove('visible');
+          chatFab.style.display = 'flex';
+      };
+
     }
 
     // wire up

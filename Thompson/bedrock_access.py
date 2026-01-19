@@ -165,7 +165,7 @@ def get_embeddings_batch(
 
 	return results
 
-def get_chat_response(model_id, system_prompt, user_message):
+def get_chat_response(model_id, system_prompt, user_message, temperature=0.7):
     """
     Generates a response from Bedrock for the chatbot.
     """
@@ -178,7 +178,7 @@ def get_chat_response(model_id, system_prompt, user_message):
 
     inference_configuration = {
         "maxTokens": 512,
-        "temperature": 0.7,
+        "temperature": temperature,
         "topP": 0.9,
     }
 
