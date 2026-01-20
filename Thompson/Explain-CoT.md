@@ -43,7 +43,7 @@ Answer: Let's think step by step.
 
 *   **Talking Point:** You included the classic CoT trigger phrase "Let's think step by step" at the very end of the user message. This primes the model to enter reasoning mode immediately rather than jumping to a conclusion.
 
-## 3. Key Interview Q&A Prep
+## 3. Q&A
 
 The manager might ask specific follow-ups. Here is how to answer based on your code:
 
